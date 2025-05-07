@@ -1,18 +1,23 @@
 import React from "react";
 import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
 import ImageDetectionComponent from "../components/ImageDetectionComponent";
-import DetectionComponent from "../components/DetectionComponent";
+import DetectionComponent from "./DetectionComponent";
 import { useRouter } from "expo-router";
+import ExaminationsListComponent from "../components/ExaminationsListComponent";
+import { MaterialIcons } from "@expo/vector-icons";
+
 export default function HomeScreen() {
   const router = useRouter();
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>My Examinations</Text>
+      <ExaminationsListComponent />
       <TouchableOpacity
-        style={styles.button}
-        onPress={router.push("/components/DetectionComponent")}
+        style={styles.addButton}
+        onPress={() => router.push("/(tabs)/DetectionComponent")}
       >
-        <Text style={styles.text}>Create a new examination</Text>
+        <MaterialIcons name="add" size={24} color="#FFF" />
       </TouchableOpacity>
     </View>
   );
@@ -21,10 +26,13 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F0F4F8",
     fontFamily: "lexend",
     alignItems: "center",
+    justifyContent: "space-between", // puts space between list and button
+    paddingVertical: 20, 
   },
+
   title: {
     fontSize: 35,
     color: "#1D24CA",
@@ -41,18 +49,20 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     fontFamily: "lexend",
   },
-  button: {
-    backgroundColor: "#98ABEE",
-    padding: 10,
-    borderRadius: 5,
+  addButton: {
+    backgroundColor: "#1D24CA",
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: "center",
     alignItems: "center",
-    marginTop: 10,
-    marginBottom: 20,
-    width: "60%",
   },
   button: {
     width: "80%",
-    marginVertical: 15,
+    marginTop: 100,
     backgroundColor: "#1D24CA", // A lighter indigo to complement the title color
     padding: 15,
     borderRadius: 15, // Matching rounded corners for consistency

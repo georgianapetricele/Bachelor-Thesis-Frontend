@@ -11,12 +11,18 @@ import {
 } from "react-native";
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
+import { TDSMeter } from "./TDSMeter"; // Assuming TDSMeter is a custom component
 
-export default function SegmentationPredictionComponent({ imageUri }) {
+export default function ImageSegmentationComponent({ imageUri }) {
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fetchedImage, setFetchedImage] = useState(null);
+  const [maskedOriginalImage, setMaskedOriginalImage] = useState(null);
   const [imageId, setImageId] = useState(null);
+  const [asymmetryIndex, setAsymmetryIndex] = useState(null);
+  const [borderIrregularity, setBorderIrregularity] = useState(null);
+  const [diameterMm, setDiameterMm] = useState(null);
+  const [colorVariety, setColorVariety] = useState(null);
 
   const router = useRouter();
 
@@ -150,17 +156,19 @@ export default function SegmentationPredictionComponent({ imageUri }) {
         );
       }
 
-      const blob = await response.blob();
+      const data = await response.json(); // 👈 parse JSON
 
-      // Convert blob to a local URI you can use in an <Image> tag
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64data = reader.result;
-        setFetchedImage(base64data); // base64 data URL
-      };
-      reader.readAsDataURL(blob); // This converts blob to data URL
+      const base64Mask = `data:image/png;base64,${data.segmentation_mask}`;
+      const base64MaskedOriginal = `data:image/png;base64,${data.masked_original}`;
 
-      Alert.alert("Success", "Prediction received!");
+      setFetchedImage(base64Mask);
+      setMaskedOriginalImage(base64MaskedOriginal);
+
+      setAsymmetryIndex(data.asymmetry_index);
+      console.debug("Asymmetry Index:", data.asymmetry_index);
+      setBorderIrregularity(data.border_irregularity);
+      setDiameterMm(data.diameter_mm);
+      setColorVariety(data.color_variety);
     } catch (error) {
       console.error("Upload error:", error);
       Alert.alert("Upload failed", error.message || "Something went wrong");
@@ -200,22 +208,17 @@ export default function SegmentationPredictionComponent({ imageUri }) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <TouchableOpacity style={styles.button} onPress={takePhoto}>
-        <Text style={{ color: "#fff" }}>Take a Photo</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.button} onPress={pickImage}>
-        <Text style={{ color: "#fff" }}>Pick from Gallery</Text>
-      </TouchableOpacity>
-      {/* {image && (
-        <> */}
-      <Image source={{ uri: imageUri }} style={styles.image} />
-      <View style={{ height: 10 }} />
-      <TouchableOpacity style={styles.button} onPress={handleUpload}>
-        <Text style={{ color: "#fff" }}>Generate segmentation mask</Text>
-      </TouchableOpacity>
-      {/* </>
-      )} */}
+      {!fetchedImage && (
+        <>
+          <Image
+            source={{ uri: fetchedImage || imageUri }}
+            style={styles.image}
+          />
+          <TouchableOpacity style={styles.button} onPress={handleUpload}>
+            <Text style={{ color: "#fff" }}>Generate segmentation mask</Text>
+          </TouchableOpacity>
+        </>
+      )}
 
       {loading && (
         <ActivityIndicator
@@ -225,7 +228,21 @@ export default function SegmentationPredictionComponent({ imageUri }) {
         />
       )}
       {fetchedImage && (
-        <Image source={{ uri: fetchedImage }} style={styles.image} />
+        <>
+          <View style={styles.imageRow}>
+            <Image source={{ uri: fetchedImage }} style={styles.smallImage} />
+            <Image
+              source={{ uri: maskedOriginalImage }}
+              style={styles.smallImage}
+            />
+          </View>
+
+          <Text>Asymmetry: {asymmetryIndex}</Text>
+          <Text>Border Irregularity: {borderIrregularity}</Text>
+          <Text>Diameter: {diameterMm} mm</Text>
+          <Text>Color Variety: {colorVariety}</Text>
+          <TDSMeter score={4.9} />
+        </>
       )}
     </ScrollView>
   );
@@ -235,12 +252,23 @@ const styles = StyleSheet.create({
   container: {
     alignItems: "center",
     marginTop: 20,
+    padding: 0,
   },
   image: {
-    width: 350,
-    height: 300,
-    marginTop: 20,
+    width: 250,
+    height: 250,
     borderRadius: 10,
+  },
+  smallImage: {
+    width: 200,
+    height: 220,
+    borderRadius: 10,
+    marginHorizontal: 5,
+  },
+  imageRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20,
   },
   button: {
     backgroundColor: "#98ABEE",

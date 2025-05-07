@@ -1,18 +1,26 @@
 import React from "react";
-import { Text, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
 import ImageSegmentationComponent from "../components/ImageSegmentationComponent";
 import { useLocalSearchParams } from "expo-router";
-
+import { MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 export default function DetailedAnalysisScreen() {
   const params = useLocalSearchParams();
-const { imageUri } = params;
+  const { imageUri } = params;
+  const router = useRouter();
 
-  
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.push("/(tabs)/DetectionComponent")}
+      >
+        <MaterialIcons name="arrow-back" size={40} color="#5C3DAC" />
+      </TouchableOpacity>
       <Text style={styles.title}>Detailed spot analysis</Text>
-      <ImageSegmentationComponent imageUri={imageUri}/>
+
+      <ImageSegmentationComponent imageUri={imageUri} />
     </View>
   );
 }
@@ -21,14 +29,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
-    paddingHorizontal: 20,
+    paddingHorizontal: 0,
     fontFamily: "lexend",
+  },
+  backButton: {
+    alignSelf: "flex-end",
+    marginBottom: 20,
+    marginTop: 50,
   },
   title: {
     fontSize: 35,
     color: "#1D24CA",
     textAlign: "center",
-    marginTop: 80,
     marginBottom: 20,
     fontFamily: "lexend",
   },

@@ -24,6 +24,19 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="DetectionComponent"
+        options={{
+          title: "Detect spots",
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "search" : "search-outline"}
+              color={color}
+              size={24}
+            />
+          ),
+        }}
+      /> 
+      <Tabs.Screen   
         name="Profile"
         options={{
           title: "Profile",

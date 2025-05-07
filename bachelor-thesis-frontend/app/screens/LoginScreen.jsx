@@ -29,9 +29,7 @@ export default function LoginScreen() {
       if (user) {
         console.debug("User already logged in:", user);
         router.replace("/(tabs)/Home");
-       
       }
-      
     });
 
     return unsubscribe; // clean up listener
@@ -46,8 +44,9 @@ export default function LoginScreen() {
       console.log(error);
       Toast.show({
         type: "error",
-        text1: "Sign in failed",
+        text1: "Log in failed",
         text2: getFriendlyErrorMessage(error),
+        topOffset: 80,
       });
     }
   };
@@ -56,13 +55,42 @@ export default function LoginScreen() {
     try {
       const user = await createUserWithEmailAndPassword(auth, email, password);
       console.debug("User created:", user);
-      if (user) router.replace("/(tabs)/Home");
+      if (user) {
+        console.debug(user.user.uid);
+        console.debug(user.user.email);
+        const response = await fetch("http://192.168.1.6:5000/doctor", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: user.user.email,
+            uuid: user.user.uid, // Firebase UID
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Backend error:", errorData);
+          Toast.show({
+            type: "error",
+            text1: "Backend error",
+            text2: errorData.message,
+            topOffset: 80,
+          });
+          return;
+        }
+
+        console.log("Doctor created in backend");
+        router.replace("/(tabs)/Home");
+      }
     } catch (error) {
       console.log(error);
       Toast.show({
         type: "error",
-        text1: "Sign in failed",
+        text1: "Sign up failed",
         text2: getFriendlyErrorMessage(error),
+        topOffset: 80,
       });
     }
   };
@@ -76,7 +104,7 @@ export default function LoginScreen() {
       case "auth/user-not-found":
         return "No account found with this email.";
       case "auth/invalid-credential":
-        return "Incorrect password. Please try again.";
+        return "No account found";
       case "auth/email-already-in-use":
         return "An account with this email already exists.";
       case "auth/weak-password":
@@ -132,7 +160,7 @@ const styles = StyleSheet.create({
     color: "#1A237E", // A deep indigo for a sophisticated, modern look
   },
   textInput: {
-    height: 40, // Standard height for elegance and simplicity
+    height: 50, // Standard height for elegance and simplicity
     width: "80%", // Full width for a more expansive feel
     backgroundColor: "#FFFFFF", // Pure white for contrast against the container
     borderColor: "#E8EAF6", // A very light indigo border for subtle contrast
