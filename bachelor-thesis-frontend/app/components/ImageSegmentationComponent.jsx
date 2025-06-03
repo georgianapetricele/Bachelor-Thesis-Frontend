@@ -11,9 +11,10 @@ import {
 } from "react-native";
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
-import { TDSMeter } from "./TDSMeter"; // Assuming TDSMeter is a custom component
+import RiskBar from "./RiskBarComponent";
 
 export default function ImageSegmentationComponent({ imageUri }) {
+  const API_BASE_URL = "http://172.20.10.13:5000";
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fetchedImage, setFetchedImage] = useState(null);
@@ -21,7 +22,6 @@ export default function ImageSegmentationComponent({ imageUri }) {
   const [imageId, setImageId] = useState(null);
   const [asymmetryIndex, setAsymmetryIndex] = useState(null);
   const [borderIrregularity, setBorderIrregularity] = useState(null);
-  const [diameterMm, setDiameterMm] = useState(null);
   const [colorVariety, setColorVariety] = useState(null);
 
   const router = useRouter();
@@ -140,7 +140,7 @@ export default function ImageSegmentationComponent({ imageUri }) {
     try {
       console.log("Uploading image:", image);
 
-      const response = await fetch("http://192.168.1.6:5000/image/segment", {
+      const response = await fetch(`${API_BASE_URL}/image/segment`, {
         method: "POST",
         body: formData,
         headers: {
@@ -167,7 +167,6 @@ export default function ImageSegmentationComponent({ imageUri }) {
       setAsymmetryIndex(data.asymmetry_index);
       console.debug("Asymmetry Index:", data.asymmetry_index);
       setBorderIrregularity(data.border_irregularity);
-      setDiameterMm(data.diameter_mm);
       setColorVariety(data.color_variety);
     } catch (error) {
       console.error("Upload error:", error);
@@ -237,11 +236,23 @@ export default function ImageSegmentationComponent({ imageUri }) {
             />
           </View>
 
-          <Text>Asymmetry: {asymmetryIndex}</Text>
-          <Text>Border Irregularity: {borderIrregularity}</Text>
-          <Text>Diameter: {diameterMm} mm</Text>
-          <Text>Color Variety: {colorVariety}</Text>
-          <TDSMeter score={4.9} />
+          {/* <RiskBar label="Asymmetry" score={asymmetryIndex} max={2.0} />
+          <RiskBar
+            label="Border Irregularity"
+            score={borderIrregularity}
+            max={3.0}
+          />
+          <RiskBar label="Color Variety" score={colorVariety} max={8.0} /> */}
+
+          <View style={styles.textBlock}>
+            <Text style={styles.paragraph}>
+              Asymmetry Index: {asymmetryIndex}
+            </Text>
+            <Text style={styles.paragraph}>
+              Border Irregularity: {borderIrregularity}
+            </Text>
+            <Text style={styles.paragraph}>Color Variety: {colorVariety}</Text>
+          </View>
         </>
       )}
     </ScrollView>
@@ -249,6 +260,16 @@ export default function ImageSegmentationComponent({ imageUri }) {
 }
 
 const styles = StyleSheet.create({
+  textBlock: {
+    marginTop: 10,
+    paddingHorizontal: 10,
+  },
+  paragraph: {
+    marginBottom: 8,
+    fontSize: 16,
+    lineHeight: 22,
+  },
+
   container: {
     alignItems: "center",
     marginTop: 20,

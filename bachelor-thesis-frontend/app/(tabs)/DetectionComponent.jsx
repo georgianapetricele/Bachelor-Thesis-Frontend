@@ -17,6 +17,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { auth } from "../../FirebaseConfig";
 
 export default function ImageDetectionComponent() {
+  const API_BASE_URL = "http://172.20.10.13:5000";
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fetchedImage, setFetchedImage] = useState(null);
@@ -106,7 +107,7 @@ export default function ImageDetectionComponent() {
     });
 
     try {
-      const response = await fetch("http://192.168.1.6:5000/image/detect", {
+      const response = await fetch(`${API_BASE_URL}/image/detect`, {
         method: "POST",
         body: formData,
         headers: {
@@ -153,7 +154,7 @@ export default function ImageDetectionComponent() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://192.168.1.6:5000/examination", {
+      const response = await fetch(`${API_BASE_URL}/examination`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -265,7 +266,7 @@ export default function ImageDetectionComponent() {
             style={styles.button}
             onPress={() => setSaveModalVisible(true)}
           >
-            <Text style={{ color: "#fff" }}>Save Examination</Text>
+            <Text style={styles.buttonText}>Save Examination</Text>
           </TouchableOpacity>
           <Text style={{ marginTop: 20, fontWeight: "bold" }}>
             Select a lesion for shape analysis:
@@ -284,7 +285,7 @@ export default function ImageDetectionComponent() {
                       className,
                       description,
                     });
-                    setInfoModalVisible(true); // Show the info modal
+                    setInfoModalVisible(true);
                   }}
                 >
                   <Text style={styles.classLabel}>{className}</Text>
@@ -306,7 +307,7 @@ export default function ImageDetectionComponent() {
                   <Image
                     source={{ uri: img }}
                     style={{
-                      width: 230,
+                      width: 280,
                       height: 230,
                       marginTop: 10,
                       borderRadius: 10,
@@ -389,17 +390,18 @@ export default function ImageDetectionComponent() {
 
             <Text style={styles.label}>Observations:</Text>
             <TextInput
-              style={styles.input}
+              style={styles.textArea}
               placeholder="Enter observations about the examination"
               value={observations}
               onChangeText={setObservations}
+              multiline={true}
             />
 
             <TouchableOpacity
               style={styles.button}
               onPress={handleSaveExamination}
             >
-              <Text style={{ color: "#fff" }}>Save</Text>
+              <Text style={styles.buttonText}>Save</Text>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => setSaveModalVisible(false)}>
@@ -490,7 +492,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -525,6 +527,15 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 8,
     padding: 10,
-    width: "80%",
+    width: "90%",
+  },
+  textArea: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 5,
+    width: "90%",
+    height: 100,
+    textAlignVertical: "top",
   },
 });

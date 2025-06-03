@@ -16,6 +16,7 @@ import Toast from "react-native-toast-message";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Profile() {
+  const API_BASE_URL = "http://172.20.10.13:5000";
   const router = useRouter();
   const [userEmail, setUserEmail] = useState("");
   const [fullName, setFullName] = useState("");
@@ -63,7 +64,7 @@ export default function Profile() {
       ["clinicName", clinicName],
     ]);
 
-    fetch("http://192.168.1.6:5000/doctor", {
+    fetch(`${API_BASE_URL}/doctor`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

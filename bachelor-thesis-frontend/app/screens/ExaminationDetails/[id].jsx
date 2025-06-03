@@ -1,15 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router"; // ✅ correct import
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+} from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 
 export default function ExaminationDetails() {
+  const API_BASE_URL = "http://172.20.10.13:5000";
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const [examination, setExamination] = useState(null);
+  const [isZoomModalVisible, setZoomModalVisible] = useState(false);
 
   useEffect(() => {
-    fetch(`http://192.168.1.6:5000/examination/${id}`)
+    fetch(`${API_BASE_URL}/examination/${id}`)
       .then((response) => response.json())
       .then((data) => setExamination(data))
       .catch((error) => {
@@ -43,10 +53,36 @@ export default function ExaminationDetails() {
       </Text>
 
       {imageBase64 ? (
-        <Image source={{ uri: imageBase64 }} style={styles.image} />
+        <TouchableOpacity onPress={() => setZoomModalVisible(true)}>
+          <Image source={{ uri: imageBase64 }} style={styles.image} />
+        </TouchableOpacity>
       ) : (
         <Text>No detection image available</Text>
       )}
+
+      <Modal visible={isZoomModalVisible} transparent={false}>
+        <TouchableOpacity
+          style={styles.fullscreenContainer}
+          onPress={() => setZoomModalVisible(false)}
+          activeOpacity={1}
+        >
+          <ScrollView
+            maximumZoomScale={3}
+            minimumZoomScale={1}
+            contentContainerStyle={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Image
+              source={{ uri: imageBase64 }}
+              style={styles.fullscreenImage}
+              resizeMode="contain"
+            />
+          </ScrollView>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -74,5 +110,19 @@ const styles = StyleSheet.create({
   closeButton: {
     alignSelf: "flex-end",
     marginBottom: 20,
+  },
+  fullscreenContainer: {
+    flex: 1,
+    backgroundColor: "black",
+  },
+  fullscreenImage: {
+    width: "100%",
+    height: "100%",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

@@ -19,6 +19,7 @@ import { useState, useEffect } from "react";
 import Toast from "react-native-toast-message";
 
 export default function LoginScreen() {
+  const API_BASE_URL = "http://172.20.10.13:5000";
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -58,7 +59,7 @@ export default function LoginScreen() {
       if (user) {
         console.debug(user.user.uid);
         console.debug(user.user.email);
-        const response = await fetch("http://192.168.1.6:5000/doctor", {
+        const response = await fetch(`${API_BASE_URL}/doctor`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

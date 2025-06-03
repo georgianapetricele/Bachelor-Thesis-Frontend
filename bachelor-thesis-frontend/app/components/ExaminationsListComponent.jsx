@@ -13,6 +13,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
 
 export default function ExaminationsListComponent() {
+  const API_BASE_URL = "http://172.20.10.13:5000";
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter(); // Initialize useRouter
@@ -20,7 +21,7 @@ export default function ExaminationsListComponent() {
   useFocusEffect(
     useCallback(() => {
       setLoading(true);
-      fetch("http://192.168.1.6:5000/examination")
+      fetch(`${API_BASE_URL}/examination`)
         .then((response) => {
           if (!response.ok) {
             throw new Error("Network response was not ok");
