@@ -24,7 +24,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="DetectionComponent"
+        name="DetectionScreen"
         options={{
           title: "Detect spots",
           tabBarIcon: ({ color, focused }) => (
@@ -35,8 +35,8 @@ export default function TabLayout() {
             />
           ),
         }}
-      /> 
-      <Tabs.Screen   
+      />
+      <Tabs.Screen
         name="Profile"
         options={{
           title: "Profile",

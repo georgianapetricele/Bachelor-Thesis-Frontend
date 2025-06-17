@@ -7,20 +7,23 @@ import { useRouter } from "expo-router";
 
 export default function DetailedAnalysisScreen() {
   const params = useLocalSearchParams();
-  const { imageUri } = params;
+  const { imageUri, predictionId } = params;
   const router = useRouter();
 
   return (
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => router.push("/(tabs)/DetectionComponent")}
+        onPress={() => router.push("/(tabs)/DetectionScreen")}
       >
         <MaterialIcons name="arrow-back" size={40} color="#5C3DAC" />
       </TouchableOpacity>
       <Text style={styles.title}>Detailed spot analysis</Text>
 
-      <ImageSegmentationComponent imageUri={imageUri} />
+      <ImageSegmentationComponent
+        imageUri={imageUri}
+        predictionId={predictionId}
+      />
     </View>
   );
 }
@@ -28,7 +31,7 @@ export default function DetailedAnalysisScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F0F4F8",
     paddingHorizontal: 0,
     fontFamily: "lexend",
   },

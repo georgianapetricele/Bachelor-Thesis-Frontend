@@ -14,12 +14,12 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { router } from "expo-router";
+
 import { useState, useEffect } from "react";
 import Toast from "react-native-toast-message";
+import { API_BASE_URL } from "../API_BASE_URL";
 
 export default function LoginScreen() {
-  const API_BASE_URL = "http://172.20.10.13:5000";
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,7 +33,7 @@ export default function LoginScreen() {
       }
     });
 
-    return unsubscribe; // clean up listener
+    return unsubscribe;
   }, []);
 
   const signIn = async () => {
@@ -66,7 +66,7 @@ export default function LoginScreen() {
           },
           body: JSON.stringify({
             email: user.user.email,
-            uuid: user.user.uid, // Firebase UID
+            uuid: user.user.uid,
           }),
         });
 
@@ -151,131 +151,48 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FAFAFA",
-    // A softer white for a modern, minimalist background
+    backgroundColor: "#F0F4F8",
   },
   title: {
-    fontSize: 30, // A bit larger for a more striking appearance
-    fontWeight: "800", // Extra bold for emphasis
-    marginBottom: 20, // Increased space for a more airy, open feel
-    color: "#1A237E", // A deep indigo for a sophisticated, modern look
+    fontSize: 30,
+    fontWeight: "800",
+    marginBottom: 20,
+    color: "#1A237E",
   },
   textInput: {
-    height: 50, // Standard height for elegance and simplicity
-    width: "80%", // Full width for a more expansive feel
-    backgroundColor: "#FFFFFF", // Pure white for contrast against the container
-    borderColor: "#E8EAF6", // A very light indigo border for subtle contrast
+    height: 50,
+    width: "80%",
+    backgroundColor: "#FFFFFF",
+    borderColor: "#E8EAF6",
     borderWidth: 2,
-    borderRadius: 15, // Softly rounded corners for a modern, friendly touch
+    borderRadius: 15,
     marginVertical: 15,
-    paddingHorizontal: 25, // Generous padding for ease of text entry
-    fontSize: 16, // Comfortable reading size
-    color: "#3C4858", // A dark gray for readability with a hint of warmth
-    shadowColor: "#9E9E9E", // A medium gray shadow for depth
+    paddingHorizontal: 25,
+    fontSize: 16,
+    color: "#3C4858",
+    shadowColor: "#9E9E9E",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 4, // Slightly elevated for a subtle 3D effect
+    elevation: 4,
   },
   button: {
     width: "80%",
     marginVertical: 15,
-    backgroundColor: "#1D24CA", // A lighter indigo to complement the title color
+    backgroundColor: "#1D24CA",
     padding: 15,
-    borderRadius: 15, // Matching rounded corners for consistency
+    borderRadius: 15,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#5C6BC0", // Shadow color to match the button for a cohesive look
+    shadowColor: "#5C6BC0",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 5,
     elevation: 5,
   },
   text: {
-    color: "#FFFFFF", // Maintained white for clear visibility
-    fontSize: 18, // Slightly larger for emphasis
-    fontWeight: "600", // Semi-bold for a balanced weight
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "600",
   },
 });
-
-// import React from "react";
-// import { Text, View, StyleSheet, TouchableOpacity, Image } from "react-native";
-// import { useRouter } from "expo-router";
-
-// export default function Index() {
-//   const router = useRouter();
-
-//   return (
-//     <View style={styles.container}>
-//       <Text style={styles.title}>
-//         {"\n"}
-//         {"\n"}DermaScan
-//       </Text>
-
-//       <View style={styles.imageContainer}>
-//         <Image
-//           source={require("./../assets/images/logo.png")}
-//           style={styles.image}
-//           resizeMode="contain"
-//         />
-//       </View>
-//       <TouchableOpacity
-//         style={styles.button}
-//         onPress={() => router.push("/(tabs)/Home")}
-//       >
-//         <Text style={styles.buttonText}>Get started</Text>
-//       </TouchableOpacity>
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: "#FFFFFF",
-//     paddingHorizontal: 20,
-//     fontFamily: "lexend",
-//   },
-//   subtitle: {
-//     fontSize: 18,
-//     fontWeight: "600",
-//     color: "#DFB8E5",
-//     textTransform: "uppercase",
-//     fontFamily: "lexend",
-//     marginBottom: 15,
-//     marginTop: 50,
-//   },
-//   title: {
-//     fontSize: 50,
-//     color: "#1D24CA",
-//     textAlign: "left",
-//     marginTop: "15%",
-//     marginBottom: "30%",
-//     lineHeight: 36,
-//     fontFamily: "lexend",
-//   },
-//   imageContainer: {
-//     width: "100%",
-//     height: 300,
-//     marginBottom: 50,
-//   },
-//   image: {
-//     width: "100%",
-//     height: "100%",
-//   },
-//   button: {
-//     backgroundColor: "#1D24CA",
-//     width: 200,
-//     height: 60,
-//     paddingVertical: 20,
-//     borderRadius: 8,
-//     alignItems: "center",
-//     marginLeft: 100,
-//     marginTop: 80,
-//   },
-//   buttonText: {
-//     color: "#FFFFFF",
-//     fontSize: 15,
-//     fontFamily: "lexend",
-//   },
-// });

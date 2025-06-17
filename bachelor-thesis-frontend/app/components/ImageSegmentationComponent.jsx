@@ -11,10 +11,9 @@ import {
 } from "react-native";
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
-import RiskBar from "./RiskBarComponent";
+import { API_BASE_URL } from "../API_BASE_URL";
 
-export default function ImageSegmentationComponent({ imageUri }) {
-  const API_BASE_URL = "http://172.20.10.13:5000";
+export default function ImageSegmentationComponent({ imageUri, predictionId }) {
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fetchedImage, setFetchedImage] = useState(null);
@@ -23,100 +22,18 @@ export default function ImageSegmentationComponent({ imageUri }) {
   const [asymmetryIndex, setAsymmetryIndex] = useState(null);
   const [borderIrregularity, setBorderIrregularity] = useState(null);
   const [colorVariety, setColorVariety] = useState(null);
+  const [matchedColors, setMatchedColors] = useState([]);
 
   const router = useRouter();
 
   useEffect(() => {
     if (imageUri) {
       setImage(imageUri);
-      console.debug("Image URI:", imageUri);
     }
   }, [imageUri]);
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Permission denied!", "We need access to your gallery.");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-      console.debug("Image URI:", result.assets[0].uri);
-      Alert.alert("Image Selected", "You have successfully selected an image.");
-    }
-  };
-
-  const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Permission denied!", "We need access to your camera.");
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-    }
-  };
-
-  // var final 2 const handleUpload = async () => {
-  //   if (!image) {
-  //     Alert.alert("No image", "Please pick or take an image first.");
-  //     return;
-  //   }
-
-  //   const formData = new FormData();
-
-  //   const uriParts = image.split("/");
-  //   const fileName = uriParts[uriParts.length - 1];
-
-  //   formData.append("image", {
-  //     uri: image,
-  //     name: fileName,
-  //     type: "image/jpeg",
-  //   });
-
-  //   try {
-  //     console.log("Uploading image:", image);
-
-  //     const response = await fetch("http://192.168.1.8:5000/image/upload", {
-  //       method: "POST",
-  //       body: formData,
-  //       headers: {
-  //         "Content-Type": "multipart/form-data",
-  //       },
-  //     });
-
-  //     if (!response.ok) {
-  //       const errorText = await response.text();
-  //       throw new Error(
-  //         `Server responded with ${response.status}: ${errorText}`
-  //       );
-  //     }
-
-  //     const data = await response.json();
-  //     setImageId(data.imageId);
-  //     setFetchedImage(null); // Reset fetched image
-  //     Alert.alert("Success", `Uploaded: ${data.filename} ${data.image_id}`);
-  //     //await handleFetchImage();
-  //   } catch (error) {
-  //     console.error("Upload error:", error);
-  //     Alert.alert("Upload failed", error.message || "Something went wrong");
-  //   }
-  // };
-
   const handleUpload = async () => {
+    console.debug("Prediction ID:", predictionId);
     setLoading(true);
     if (!image) {
       Alert.alert("No image", "Please pick or take an image first.");
@@ -137,9 +54,11 @@ export default function ImageSegmentationComponent({ imageUri }) {
       type: "image/png",
     });
 
-    try {
-      console.log("Uploading image:", image);
+    if (predictionId) {
+      formData.append("prediction_id", predictionId);
+    }
 
+    try {
       const response = await fetch(`${API_BASE_URL}/image/segment`, {
         method: "POST",
         body: formData,
@@ -147,7 +66,6 @@ export default function ImageSegmentationComponent({ imageUri }) {
           "Content-Type": "multipart/form-data",
         },
       });
-      setLoading(false);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -156,7 +74,7 @@ export default function ImageSegmentationComponent({ imageUri }) {
         );
       }
 
-      const data = await response.json(); // 👈 parse JSON
+      const data = await response.json();
 
       const base64Mask = `data:image/png;base64,${data.segmentation_mask}`;
       const base64MaskedOriginal = `data:image/png;base64,${data.masked_original}`;
@@ -168,42 +86,45 @@ export default function ImageSegmentationComponent({ imageUri }) {
       console.debug("Asymmetry Index:", data.asymmetry_index);
       setBorderIrregularity(data.border_irregularity);
       setColorVariety(data.color_variety);
+      setMatchedColors(data.matched_color_codes);
+      setLoading(false);
+      Alert.alert("Success", "Detailed shape analysis saved successfully!");
     } catch (error) {
-      console.error("Upload error:", error);
-      Alert.alert("Upload failed", error.message || "Something went wrong");
+      setLoading(false);
+      Alert.alert(
+        "Upload failed",
+        "Could not generate segmentation mask, please try again."
+      );
     }
   };
 
-  //  var final 1 const handleFetchImage = async () => {
-  //   setLoading(true);
-  //   try {
-  //     // Simply use the URL directly
-  //     setFetchedImage(`http://192.168.1.8:5000/prediction`);
-  //     console.debug(fetchedImage);
-  //     setLoading(false);
-  //   } catch (error) {
-  //     console.error("Fetch error:", error);
-  //     setLoading(false);
-  //     Alert.alert("Error", "Failed to load image");
-  //   }
-  // };
+  const getRiskInfo = (label, value) => {
+    if (value === null || value === undefined) {
+      return { color: "#888", message: "No data" };
+    }
 
-  // const handleFetchImage = async (imageId) => {
-  //   setLoading(true);
-  //   try {
-  //     const response = await fetch(`http://192.168.1.8:5000/${imageId}`);
-  //     if (!response.ok) {
-  //       throw new Error(`Server responded with ${response.status}`);
-  //     }
-  //     // Just check if the response was successful
-  //     setFetchedImage(`http://192.168.1.8:5000/${imageId}`);
-  //   } catch (error) {
-  //     console.error("Fetch error:", error);
-  //     Alert.alert("Error", "Failed to load image");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+    switch (label) {
+      case "Asymmetry Index":
+        if (value == 0.0)
+          return { color: "green", message: "Shape symmetric on both axes" };
+        if (value === 1.0)
+          return { color: "orange", message: "Shape asymmetric on one axis" };
+        return { color: "red", message: "Shape asymmetric on both axes" };
+
+      case "Border Irregularity":
+        if (value < 1.0)
+          return { color: "green", message: "Smooth border (< 1.0)" };
+        if (value < 1.5)
+          return { color: "orange", message: "Slightly irregular (1.0 - 1.5)" };
+        return { color: "red", message: "Highly irregular border (> 1.5)" };
+
+      case "Color Variety":
+        return {
+          color: "#1D24CA",
+          message: `Lesion contains ${value} colors out of 6 total risk colors`,
+        };
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -214,7 +135,7 @@ export default function ImageSegmentationComponent({ imageUri }) {
             style={styles.image}
           />
           <TouchableOpacity style={styles.button} onPress={handleUpload}>
-            <Text style={{ color: "#fff" }}>Generate segmentation mask</Text>
+            <Text style={{ color: "#fff" }}>Analyze spot</Text>
           </TouchableOpacity>
         </>
       )}
@@ -236,22 +157,59 @@ export default function ImageSegmentationComponent({ imageUri }) {
             />
           </View>
 
-          {/* <RiskBar label="Asymmetry" score={asymmetryIndex} max={2.0} />
-          <RiskBar
-            label="Border Irregularity"
-            score={borderIrregularity}
-            max={3.0}
-          />
-          <RiskBar label="Color Variety" score={colorVariety} max={8.0} /> */}
-
           <View style={styles.textBlock}>
-            <Text style={styles.paragraph}>
-              Asymmetry Index: {asymmetryIndex}
-            </Text>
-            <Text style={styles.paragraph}>
-              Border Irregularity: {borderIrregularity}
-            </Text>
-            <Text style={styles.paragraph}>Color Variety: {colorVariety}</Text>
+            {[
+              { label: "Asymmetry Index", value: asymmetryIndex },
+              { label: "Border Irregularity", value: borderIrregularity },
+              { label: "Color Variety", value: colorVariety },
+            ].map(({ label, value }, index) => {
+              const { color, message } = getRiskInfo(label, value);
+              return (
+                <View key={index} style={{ marginBottom: 12 }}>
+                  <Text style={[styles.paragraph, { color }]}>
+                    {label}: {value?.toFixed(3) ?? "N/A"}
+                  </Text>
+                  <Text
+                    style={{
+                      color: "#1D24CA",
+                      marginTop: 5,
+                      fontSize: 20,
+                    }}
+                  >
+                    {message}
+                  </Text>
+                </View>
+              );
+            })}
+            {matchedColors.length > 0 && (
+              <View
+                style={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  justifyContent: "center",
+                }}
+              >
+                {matchedColors.map((rgb, index) => {
+                  const [r, g, b] = rgb.map((c) => Math.round(c * 255));
+                  const backgroundColor = `rgb(${r},${g},${b})`;
+
+                  return (
+                    <View
+                      key={index}
+                      style={{
+                        width: 60,
+                        height: 60,
+                        backgroundColor,
+                        margin: 2,
+                        borderWidth: 1,
+                        borderColor: "#ddd",
+                        borderRadius: 4,
+                      }}
+                    />
+                  );
+                })}
+              </View>
+            )}
           </View>
         </>
       )}
@@ -261,29 +219,30 @@ export default function ImageSegmentationComponent({ imageUri }) {
 
 const styles = StyleSheet.create({
   textBlock: {
-    marginTop: 10,
+    marginTop: 50,
     paddingHorizontal: 10,
   },
   paragraph: {
-    marginBottom: 8,
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: 22,
+    fontWeight: "500",
+    marginTop: 10,
   },
 
   container: {
     alignItems: "center",
     marginTop: 20,
     padding: 0,
+    backgroundColor: "#F0F4F8",
   },
   image: {
     width: 250,
     height: 250,
-    borderRadius: 10,
+    borderRadius: 0,
   },
   smallImage: {
     width: 200,
     height: 220,
-    borderRadius: 10,
+    borderRadius: 0,
     marginHorizontal: 5,
   },
   imageRow: {

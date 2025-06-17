@@ -1,7 +1,6 @@
 import React from "react";
 import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
-import ImageDetectionComponent from "../components/ImageDetectionComponent";
-import DetectionComponent from "./DetectionComponent";
+import DetectionScreen from "./DetectionScreen";
 import { useRouter } from "expo-router";
 import ExaminationsListComponent from "../components/ExaminationsListComponent";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -15,7 +14,7 @@ export default function HomeScreen() {
       <ExaminationsListComponent />
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => router.push("/(tabs)/DetectionComponent")}
+        onPress={() => router.push("/(tabs)/DetectionScreen")}
       >
         <MaterialIcons name="add" size={24} color="#FFF" />
       </TouchableOpacity>
@@ -29,8 +28,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#F0F4F8",
     fontFamily: "lexend",
     alignItems: "center",
-    justifyContent: "space-between", // puts space between list and button
-    paddingVertical: 20, 
+    justifyContent: "space-between",
+    paddingVertical: 20,
   },
 
   title: {
@@ -63,20 +62,20 @@ const styles = StyleSheet.create({
   button: {
     width: "80%",
     marginTop: 100,
-    backgroundColor: "#1D24CA", // A lighter indigo to complement the title color
+    backgroundColor: "#1D24CA",
     padding: 15,
-    borderRadius: 15, // Matching rounded corners for consistency
+    borderRadius: 15,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#5C6BC0", // Shadow color to match the button for a cohesive look
+    shadowColor: "#5C6BC0",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 5,
     elevation: 5,
   },
   text: {
-    color: "#FFFFFF", // Maintained white for clear visibility
-    fontSize: 18, // Slightly larger for emphasis
-    fontWeight: "600", // Semi-bold for a balanced weight
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "600",
   },
 });

@@ -11,12 +11,13 @@ import {
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
+import { API_BASE_URL } from "../API_BASE_URL";
+
 
 export default function ExaminationsListComponent() {
-  const API_BASE_URL = "http://172.20.10.13:5000";
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
 
   useFocusEffect(
     useCallback(() => {
@@ -40,7 +41,9 @@ export default function ExaminationsListComponent() {
   );
 
   if (loading) {
-    return <ActivityIndicator size="large" style={{ flex: 1 }} />;
+    return (
+      <ActivityIndicator size="large" style={{ flex: 1 }} color="#0000ff" />
+    );
   }
 
   const renderExaminationCard = ({ item }) => (

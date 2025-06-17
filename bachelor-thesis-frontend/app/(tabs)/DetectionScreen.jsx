@@ -11,13 +11,14 @@ import {
   Modal,
   TextInput,
 } from "react-native";
-import { useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { auth } from "../../FirebaseConfig";
+import { API_BASE_URL } from "../API_BASE_URL";
 
-export default function ImageDetectionComponent() {
-  const API_BASE_URL = "http://172.20.10.13:5000";
+export default function DetectionScreen() {
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fetchedImage, setFetchedImage] = useState(null);
@@ -30,6 +31,7 @@ export default function ImageDetectionComponent() {
   const [patientName, setPatientName] = useState("");
   const [patientEmail, setPatientEmail] = useState("");
   const [observations, setObservations] = useState("");
+  const [predictionId, setPredictionId] = useState(null);
 
   const classInfo = {
     Melanoma:
@@ -48,9 +50,52 @@ export default function ImageDetectionComponent() {
       "Vascular skin lesions range from cherry angiomas to angiokeratomas and pyogenic granulomas. Hemorrhage is also included in this category. Angiomas are dermatoscopically characterized by red or purple color and solid, well circumscribed structures known as red clods or lacunes.",
   };
 
+  const malignantClasses = [
+    "Melanoma",
+    "Actinic Keratoses (Solar Keratoses)",
+    "Basal Cell Carcinoma",
+  ];
+
   const router = useRouter();
 
+  useEffect(() => {
+    const loadSavedData = async () => {
+      try {
+        const savedFetchedImage = await AsyncStorage.getItem("fetchedImage");
+        const savedCroppedImages = await AsyncStorage.getItem("croppedImages");
+        const savedCroppedClasses = await AsyncStorage.getItem(
+          "croppedClasses"
+        );
+
+        if (savedFetchedImage) setFetchedImage(savedFetchedImage);
+        if (savedCroppedImages)
+          setCroppedImages(JSON.parse(savedCroppedImages));
+        if (savedCroppedClasses)
+          setCroppedClasses(JSON.parse(savedCroppedClasses));
+      } catch (err) {
+        console.error("Failed to load saved data:", err);
+      }
+    };
+
+    loadSavedData();
+  }, []);
+
+  const clearSavedData = async () => {
+    try {
+      await AsyncStorage.removeItem("fetchedImage");
+      await AsyncStorage.removeItem("croppedImages");
+      await AsyncStorage.removeItem("croppedClasses");
+
+      setFetchedImage(null);
+      setCroppedImages([]);
+      setCroppedClasses([]);
+    } catch (err) {
+      console.error("Error clearing storage:", err);
+    }
+  };
+
   const pickImage = async () => {
+    clearSavedData();
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       Alert.alert("Permission denied!", "We need access to your gallery.");
@@ -66,12 +111,12 @@ export default function ImageDetectionComponent() {
 
     if (!result.canceled) {
       setImage(result.assets[0].uri);
-      //console.debug("Image URI:", result.assets[0].uri);
       Alert.alert("Image Selected", "You have successfully selected an image.");
     }
   };
 
   const takePhoto = async () => {
+    clearSavedData();
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
       Alert.alert("Permission denied!", "We need access to your camera.");
@@ -115,27 +160,39 @@ export default function ImageDetectionComponent() {
         },
       });
 
+      const responseBody = await response.json();
       setLoading(false);
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          `Server responded with ${response.status}: ${errorText}`
-        );
+        throw new Error(responseBody.error || "Server error");
       }
 
-      const json = await response.json();
+      const base64Image = `data:${responseBody.mimetype};base64,${responseBody.detected_image}`;
 
-      const base64Image = `data:${json.mimetype};base64,${json.detected_image}`;
-      const croppedImagesList = json.cropped_objects.map(
-        (img) => `data:${json.mimetype};base64,${img}`
+      const croppedImagesList = responseBody.cropped_objects.map(
+        (img) => `data:${responseBody.mimetype};base64,${img}`
       );
-
-      const croppedClassesList = json.classes;
+      const croppedClassesList = responseBody.classes;
 
       setFetchedImage(base64Image);
+      setPredictionId(responseBody.prediction_id);
       setCroppedImages(croppedImagesList);
       setCroppedClasses(croppedClassesList);
+
+      await AsyncStorage.setItem("fetchedImage", base64Image);
+      await AsyncStorage.setItem(
+        "croppedImages",
+        JSON.stringify(croppedImagesList)
+      );
+      await AsyncStorage.setItem(
+        "croppedClasses",
+        JSON.stringify(croppedClassesList)
+      );
+
+      await AsyncStorage.setItem(
+        "predictionId",
+        JSON.stringify(responseBody.prediction_id)
+      );
 
       Alert.alert("Success", "Prediction received!");
     } catch (error) {
@@ -153,6 +210,11 @@ export default function ImageDetectionComponent() {
 
     setLoading(true);
 
+    const storedPredictionId = await AsyncStorage.getItem("predictionId");
+    const localPredictionId = storedPredictionId
+      ? JSON.parse(storedPredictionId)
+      : null;
+
     try {
       const response = await fetch(`${API_BASE_URL}/examination`, {
         method: "POST",
@@ -165,7 +227,7 @@ export default function ImageDetectionComponent() {
           observations: observations,
           doctorUid: auth.currentUser.uid,
           createdAt: new Date().toISOString(),
-          detectionPredictionImage: fetchedImage,
+          predictionId: localPredictionId,
         }),
       });
 
@@ -183,6 +245,18 @@ export default function ImageDetectionComponent() {
       Alert.alert("Error", err.message || "Failed to save examination");
       setLoading(false);
     }
+  };
+
+  const goToDetailedAnalysis = async (img) => {
+    const storedPredictionId = await AsyncStorage.getItem("predictionId");
+    const localPredictionId = storedPredictionId
+      ? JSON.parse(storedPredictionId)
+      : null;
+
+    router.push({
+      pathname: "../screens/DetailedAnalysisScreen",
+      params: { imageUri: img, predictionId: localPredictionId },
+    });
   };
 
   return (
@@ -216,16 +290,6 @@ export default function ImageDetectionComponent() {
         </TouchableOpacity>
       </View>
 
-      {/* {image && (
-        <>
-          <Image source={{ uri: image }} style={styles.image} />
-          <View style={{ height: 10 }} />
-          <TouchableOpacity style={styles.button} onPress={handleUpload}>
-            <Text style={{ color: "#fff" }}>Generate diagnosis</Text>
-          </TouchableOpacity>
-        </>
-      )} */}
-
       {(fetchedImage || image) && (
         <>
           <TouchableOpacity onPress={() => setZoomModalVisible(true)}>
@@ -251,14 +315,6 @@ export default function ImageDetectionComponent() {
           style={{ marginTop: 10 }}
         />
       )}
-      {/* {fetchedImage && (
-        <>
-          <Text style={{ marginTop: 20, fontWeight: "bold" }}>
-            Detected Image:
-          </Text>
-          <Image source={{ uri: fetchedImage }} style={styles.image} />
-        </>
-      )} */}
 
       {croppedImages.length > 0 && (
         <>
@@ -288,7 +344,19 @@ export default function ImageDetectionComponent() {
                     setInfoModalVisible(true);
                   }}
                 >
-                  <Text style={styles.classLabel}>{className}</Text>
+                  <Text
+                    style={[
+                      styles.classLabel,
+                      {
+                        color: malignantClasses.includes(className)
+                          ? "red"
+                          : "#000",
+                      },
+                    ]}
+                  >
+                    {className}
+                  </Text>
+
                   <MaterialIcons
                     name="info-outline"
                     size={20}
@@ -296,14 +364,7 @@ export default function ImageDetectionComponent() {
                   />
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                  onPress={() =>
-                    router.push({
-                      pathname: "../screens/DetailedAnalysisScreen",
-                      params: { imageUri: img },
-                    })
-                  }
-                >
+                <TouchableOpacity onPress={() => goToDetailedAnalysis(img)}>
                   <Image
                     source={{ uri: img }}
                     style={{
@@ -420,6 +481,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 50,
     width: "100%",
+    backgroundColor: "#F0F4F8",
   },
   title: {
     fontSize: 30,

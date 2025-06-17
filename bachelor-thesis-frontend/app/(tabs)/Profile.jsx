@@ -14,9 +14,9 @@ import { signOut } from "firebase/auth";
 import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_BASE_URL } from "../API_BASE_URL";
 
 export default function Profile() {
-  const API_BASE_URL = "http://172.20.10.13:5000";
   const router = useRouter();
   const [userEmail, setUserEmail] = useState("");
   const [fullName, setFullName] = useState("");
@@ -43,7 +43,7 @@ export default function Profile() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      router.replace("/"); //login screen
+      router.replace("/");
     } catch (error) {
       console.log(error);
       Alert.alert("Logout failed: " + error.message);
