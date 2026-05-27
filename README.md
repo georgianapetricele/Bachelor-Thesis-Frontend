@@ -21,8 +21,3 @@ detection model, a hybrid dataset was created by combining the HAM10000 dataset 
   <img src="https://github.com/user-attachments/assets/ff07cb0a-7b15-4319-b988-8fc066b56632" width="200"/>
   <img src="https://github.com/user-attachments/assets/e89b7a41-a054-45fc-b441-30ece9c17aae" width="200"/>
 </p>
-
-<p align="center">
-    <img width="200" height="1688" alt="image" src="https://github.com/user-attachments/assets/e5e41707-aa72-4d69-af90-004e06047d91" />
-    <img src="https://github.com/user-attachments/assets/e65aed2d-88d9-4cc2-ac37-aaf1430c9bf5" width="200"/>
-</p>
